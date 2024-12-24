@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
+</head>
+<body>
+    <input id="a" type="text" placeholder="Enter A">
+    <input id = "b" type="text" placeholder="Enter b">
+
+    <button onclick="sendreq()">
+        click me
+    </button>
+    <div id="response" style="margin-top: 20px; font-size: 18px; color: green;"></div>
+    <script>
+
+        function sendreq() {
+            const a = document.getElementById("a").value;
+            const b = document.getElementById("b").value;
+            const data = axios.post("http://localhost:3000/sum", {
+                a: a,
+                b: b
+            }).then(response => {
+                // Assuming the server responds with { sum: result }
+                const result = response.data.sum;
+
+                // Update the HTML element with the result
+                document.getElementById("response").innerText = "The sum is: " + result;
+            }).catch(error => {
+                console.error("Error:", error);
+
+                // Show an error message in the HTML element
+                document.getElementById("response").innerText = "An error occurred. Please try again.";
+                document.getElementById("response").style.color = "red";
+            })
+
+        }
+
+
+
+    </script>
+</body>
+</html>
