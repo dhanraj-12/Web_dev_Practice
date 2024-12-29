@@ -11,7 +11,7 @@ function authmiddleware(req,res,next) {
     const token = req.headers.authorization;
     const decodeddata = jwt.verify(token,JWT_SECRET);
     if(decodeddata.username) {
-        req.username = decodeddata.username;
+        req.username = username;
         next();
     } else {
         res.json({
@@ -60,7 +60,8 @@ app.post("/signin", (req,res) => {
 
 
 app.get("/me", authmiddleware, (req,res) => {
-        const user = users.find(user => user.username === req.username);
+        const username = req.username;
+        const user = users.find(user => user.username === username);
     
         if(user) {
             res.send({
