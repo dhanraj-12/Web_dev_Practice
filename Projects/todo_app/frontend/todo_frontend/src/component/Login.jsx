@@ -1,43 +1,49 @@
 import React from 'react'
 import { useState } from 'react'
-import axios from 'axios';
-import { use } from 'react';
+import axios from 'axios'
+import { use } from 'react'
 
 function Login () {
   const [isLogin, setIsLogin] = useState(false)
-  const [username,setUsername] = useState("");
-  const [password,setPassword] = useState("");
-  
-  const handleChangeinName = (event) => {
-      setUsername(event.target.value);
+  const [username, setUsername] = useState('')
+  const [useremail, setUseremail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const handleChangeinEmail = event => {
+    setUseremail(event.target.value)
   }
 
-  const handleChangeinPass = (event) => {
-      setPassword(event.target.value);
+  const handleChangeinPass = event => {
+    setPassword(event.target.value)
   }
 
-  async function handleReq(event) {
-    event.preventDefault(); // Prevents form submission refresh
-    const user = username;
-    const pass = password;
-    if(isLogin) {
-      const response = await axios.post("http://localhost:3000/signin", {
-        "username" : user,
-        "password" : password
+  const handleChangeinName = event => {
+    setUsername(event.target.value)
+  }
+
+  async function handleReq (event) {
+    event.preventDefault() // Prevents form submission refresh
+    const user = useremail
+    const pass = password
+    const name = username
+    if (isLogin) {
+      const response = await axios.post('http://localhost:3000/signin', {
+        useremail: user,
+        password: password
       })
-      localStorage.setItem("token", response.data.token);
-      alert("Signed in successfully");
-    }else {
-      const response = await axios.post("http://localhost:3000/signup", {
-        "username" : user,
-        "password" : pass
+      localStorage.setItem('token', response.data.token)
+      alert('Signed in successfully')
+      navigator('/')
+    } else {
+      const response = await axios.post('http://localhost:3000/signup', {
+        username: name,
+        useremail: user,
+        password: pass
       })
-      alert("Signed up successfully");
+      alert('Signed up successfully')
     }
-  } 
- 
- 
- 
+  }
+
   return (
     <>
       <div className='flex flex-col justify-center items-center h-screen pt-11'>
@@ -77,20 +83,39 @@ function Login () {
                   {isLogin ? 'Login' : 'Signup'}
                 </h2>
                 <form action=''>
+                  {!isLogin && (
+                    <div className='mb-4'>
+                      <label
+                        htmlFor='name'
+                        className='block text-sm font-medium text-gray-600 mb-1'
+                      >
+                        Name
+                      </label>
+                      <input
+                        type='name'
+                        id='name'
+                        className='w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400'
+                        placeholder='Enter your Name'
+                        value={username}
+                        onChange={handleChangeinName}
+                        required
+                      />
+                    </div>
+                  )}
                   <div className='mb-4'>
                     <label
                       htmlFor='email'
                       className='block text-sm font-medium text-gray-600 mb-1'
                     >
-                        Email
+                      Email
                     </label>
                     <input
                       type='email'
                       id='email'
                       className='w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400'
                       placeholder='Enter your Email'
-                      value={username}
-                      onChange={handleChangeinName}
+                      value={useremail}
+                      onChange={handleChangeinEmail}
                       required
                     />
                   </div>

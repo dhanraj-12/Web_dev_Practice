@@ -1,14 +1,15 @@
 import React from 'react'
 import Header from './Header'
 import TodoComp from './TodoComp'
-function Home() {
+import Controls from './Controls'
+function Home () {
   return (
     <>
-        <Header />
-        <TodoComp />
+      <Header />
+      <TodoComp />
+      <Controls />
     </>
-
-    )
+  )
 }
 
 export default Home
