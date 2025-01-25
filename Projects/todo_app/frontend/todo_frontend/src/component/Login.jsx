@@ -1,6 +1,7 @@
 import React from 'react'
 import { useState } from 'react'
 import axios from 'axios'
+import { useNavigate } from 'react-router'
 import { use } from 'react'
 
 function Login () {
@@ -8,6 +9,7 @@ function Login () {
   const [username, setUsername] = useState('')
   const [useremail, setUseremail] = useState('')
   const [password, setPassword] = useState('')
+  const navigate = useNavigate()
 
   const handleChangeinEmail = event => {
     setUseremail(event.target.value)
@@ -26,21 +28,38 @@ function Login () {
     const user = useremail
     const pass = password
     const name = username
-    if (isLogin) {
-      const response = await axios.post('http://localhost:3000/signin', {
-        useremail: user,
-        password: password
-      })
-      localStorage.setItem('token', response.data.token)
-      alert('Signed in successfully')
-      navigator('/')
-    } else {
-      const response = await axios.post('http://localhost:3000/signup', {
-        username: name,
-        useremail: user,
-        password: pass
-      })
-      alert('Signed up successfully')
+
+    try {
+      if (isLogin) {
+        // Handle sign-in
+        const response = await axios.post('http://localhost:3000/singin', {
+          useremail: user,
+          password: pass
+        })
+        localStorage.setItem('token', response.data.token)
+        alert('Signed in successfully')
+        navigate('/')
+      } else {
+        // Handle sign-up
+        const response = await axios.post('http://localhost:3000/signup', {
+          username: name,
+          useremail: user,
+          password: pass
+        })
+        alert('Signed up successfully')
+      }
+    } catch (error) {
+      // Error handling
+      if (error.response) {
+        // Server responded with a status other than 2xx
+        alert(`Error: ${error.response.data.message || 'Something went wrong'}`)
+      } else if (error.request) {
+        // Request was made but no response received
+        alert('Error: No response from server. Please try again later.')
+      } else {
+        // Something else caused the error
+        alert(`Error: ${error.message}`)
+      }
     }
   }
 

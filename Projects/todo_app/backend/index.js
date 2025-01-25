@@ -1,123 +1,76 @@
 const express = require('express')
-const app = express();
-const fs = require('fs')
-const cors = require('cors')
+const app = express()
+const mongoose = require('mongoose')
+const { UserModel, TodoModel } = require('./db')
 const jwt = require('jsonwebtoken')
-const JWT_SECRET = 'thisismysecret'
+const { JWT_SECRET } = require('./auth')
+const cors = require('cors')
+const key = require('./db_key')
 const port = 3000
-const filepath = __dirname + '/users.json'
-app.use(express.json());
+
+app.use(express.json())
 app.use(cors())
 
-function auth(req, res, next) {
-  const token = req.headers.authorization;
-
-  if (token) {
-      jwt.verify(token, JWT_SECRET, (err, decoded) => {
-          if (err) {
-              res.status(401).send({
-                  message: "Unauthorized"
-              })
-          } else {
-              req.user = decoded;
-              next();
-          }
-      })
-  } else {
-      res.status(401).send({
-          message: "Unauthorized"
-      })
+async function conn () {
+  try {
+    await mongoose.connect(
+      key
+    )
+    console.log('Connected to MongoDB successfully!')
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error.message)
   }
 }
 
+conn()
 
-// For signuping the user 
-app.post('/signup', (req, res) => {
-  const username = req.body.username
+app.post('/signup', async (req, res) => {
+  const user = req.body.username
+  const email = req.body.useremail
   const password = req.body.password
 
+  await UserModel.create({
+    name: user,
+    email: email,
+    password: password
+  })
 
-    // Read existing users from the file
-  fs.readFile(filepath, 'utf-8', (err, data) => {
-    if (err) {
-      console.log(err)
-      res.status(500).json({
-        message: 'Internal Server Error'
-      })
-    }
+  res.json({
+    message: 'Succesfully signup in'
+  })
+})
 
-    let users = []
-    if (data) {
-      users = JSON.parse(data)
-    }
+app.post('/singin', async (req, res) => {
+  try {
+    const email = req.body.useremail
+    const password = req.body.password
 
-
-    // making the js object of credentials 
-    users.push({
-      username: username,
+    const response = await UserModel.findOne({
+      email: email,
       password: password
     })
 
+    if (!response) {
+      return res.status(403).json({ message: 'Incorrect credentials' })
+    }
 
-    // Write the updated users array back to the file
-    fs.writeFile(filepath, JSON.stringify(users), err => {
-      if (err) {
-        console.log(err)
-        res.status(500).json({
-          message: 'Internal Server Error'
-        })
+    const token = jwt.sign(
+      {
+        id: response._id.toString()
+      },
+      JWT_SECRET,
+      {
+        expiresIn: '1h'
       }
-      console.log(users)
-      res.status(200).json({
-        message: 'User created'
-      })
+    )
+
+    res.status(200).json({
+      token,
+      message: 'Login Sucesfully'
     })
-  })
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' })
+  }
 })
-
-
-// for token dstribution while login
-app.post('/signin', (req, res) => {
-
-    const {username, password} = req.body;
-    fs.readFile(filepath, 'utf-8', (err, data) => {
-      if (err) {
-        console.log(err)
-        return res.status(500).json({
-          message: 'Internal Server Error'
-        })
-      }
-  
-      let users = []
-      if (data) {
-        users = JSON.parse(data)
-      }
-  
-      const user = users.find(user => user.username === username)
-      if (!user || String(user.password) !== String(password)) {
-        return res.status(401).json({
-          message: 'Invalid credentials'
-        })
-      }
-  
-      const token = jwt.sign({ username: username }, JWT_SECRET)
-      return res.status(200).json({
-        token: token
-      })
-    })
-
-
-})
-
-
-app.get("/me",auth, (req,res) => {
-  const user = req.user;
-  res.send({
-    username : user.username
-  })
-})
-
-
-
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
